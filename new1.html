@@ -1,0 +1,248 @@
+ <!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Personal Portal | Visibility Fixed</title>
+    <link href="https://googleapis.com" rel="stylesheet">
+    <style>
+        /* THEME VARIABLES */
+        :root { 
+            --primary: #003366; 
+            --gold: #FFD700; 
+            --bg: #f4f7f6; 
+            --text: #333333; 
+            --card: #ffffff;
+        }
+        [data-theme="dark"] { 
+            --bg: #121212; 
+            --text: #ffffff; 
+            --card: #1e1e1e;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Poppins', sans-serif; transition: background 0.3s, color 0.3s; }
+        body { background: var(--bg); color: var(--text); }
+
+        /* AUTH PAGE */
+        #auth-page {
+            background: linear-gradient(rgba(0,51,102,0.8), rgba(0,51,102,0.8)), url('https://unsplash.com');
+            background-size: cover; height: 100vh; display: flex; justify-content: center; align-items: center; position: fixed; width: 100%; z-index: 2000;
+        }
+        .auth-box { background: rgba(255,255,255,0.1); backdrop-filter: blur(10px); padding: 40px; border-radius: 15px; width: 350px; color: white; border: 1px solid rgba(255,255,255,0.2); text-align: center; }
+        .auth-box input { width: 100%; padding: 12px; margin-bottom: 15px; border-radius: 5px; border: none; outline: none; color: #333; }
+        .btn-auth { width: 100%; padding: 12px; background: #FFD700; border: none; border-radius: 5px; font-weight: 600; cursor: pointer; color: #003366; }
+
+        /* NAVIGATION - STYLES LOCKED FOR VISIBILITY */
+        nav { 
+            background: #001a33 !important; /* Fixed Dark Navy */
+            color: white !important; 
+            padding: 1rem 8%; 
+            display: flex; 
+            justify-content: space-between; 
+            align-items: center; 
+            position: fixed; 
+            top: 0; 
+            width: 100%; 
+            z-index: 1000;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+        }
+        
+        .nav-right { display: flex; gap: 15px; align-items: center; }
+        
+        /* LOCKED BUTTON COLORS - WILL NOT DISAPPEAR */
+        .btn-upload-nav { 
+            background: #FFD700 !important; 
+            color: #001a33 !important; 
+            padding: 8px 18px; 
+            border-radius: 6px; 
+            font-weight: 700; 
+            cursor: pointer; 
+            border: none; 
+            font-size: 0.9rem;
+        }
+
+        .btn-theme-nav {
+            background: #ffffff !important;
+            color: #000000 !important;
+            padding: 8px 12px;
+            border-radius: 6px;
+            border: none;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 0.8rem;
+        }
+
+        .logout-link { color: #FFD700 !important; cursor: pointer; text-decoration: none; font-weight: 600; }
+
+        /* MAIN CONTENT */
+        #portal-page { display: none; padding-top: 110px; min-height: 100vh; }
+        .container { max-width: 800px; margin: 0 auto; padding: 20px; }
+        .search-bar { width: 100%; padding: 15px; border-radius: 8px; border: 1px solid #ddd; margin-bottom: 25px; background: var(--card); color: var(--text); }
+
+        /* MODAL */
+        .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); display: none; justify-content: center; align-items: center; z-index: 3000; }
+        .modal-content { background: var(--card); padding: 30px; border-radius: 12px; width: 90%; max-width: 450px; color: var(--text); }
+        .modal-content input, .modal-content textarea { width: 100%; padding: 12px; margin-top: 10px; border-radius: 5px; border: 1px solid #ddd; background: #fff; color: #333; }
+
+        /* CARD STYLING */
+        .info-card { background: var(--card); border-radius: 12px; margin-bottom: 30px; overflow: hidden; box-shadow: 0 10px 20px rgba(0,0,0,0.1); border-left: 8px solid #FFD700; position: relative; }
+        .card-img { width: 100%; max-height: 400px; object-fit: cover; }
+        .card-body { padding: 20px; }
+        .delete-btn { position: absolute; top: 15px; right: 15px; color: #ff4d4d; cursor: pointer; font-weight: 700; background: rgba(255,255,255,0.9); padding: 2px 8px; border-radius: 4px; }
+    </style>
+</head>
+<body>
+
+    <!-- AUTHENTICATION -->
+    <div id="auth-page">
+        <div class="auth-box" id="login-box">
+            <h2>Login</h2>
+            <form id="loginForm">
+                <input type="text" id="lReg" placeholder="Register Number" required>
+                <input type="password" id="lPass" placeholder="Password" required>
+                <button type="submit" class="btn-auth">Login</button>
+            </form>
+            <p style="margin-top:15px; font-size:0.8rem;">New? <span onclick="toggleAuth()" style="color:#FFD700; cursor:pointer; font-weight:600;">Register Here</span></p>
+        </div>
+
+        <div class="auth-box" id="reg-box" style="display:none;">
+            <h2>Register</h2>
+            <form id="regForm">
+                <input type="text" id="rName" placeholder="Full Name" required>
+                <input type="text" id="rReg" placeholder="Register Number" required>
+                <input type="password" id="rPass" placeholder="Create Password" required>
+                <button type="submit" class="btn-auth">Register</button>
+            </form>
+            <p style="margin-top:15px; font-size:0.8rem;">Registered? <span onclick="toggleAuth()" style="color:#FFD700; cursor:pointer; font-weight:600;">Login Here</span></p>
+        </div>
+    </div>
+
+    <!-- PORTAL SECTION -->
+    <div id="portal-page">
+        <nav>
+            <div id="navUser" style="color:white; font-weight:600;">User Dashboard</div>
+            <div class="nav-right">
+                <button class="btn-upload-nav" onclick="openModal()">✚ Upload</button>
+                <button class="btn-theme-nav" onclick="toggleTheme()">🌓 Theme</button>
+                <a onclick="location.reload()" class="logout-link">Logout</a>
+            </div>
+        </nav>
+
+        <div class="container">
+            <input type="text" class="search-bar" id="searchInput" placeholder="🔍 Search your uploads..." onkeyup="renderInfo()">
+            <div id="infoList"></div>
+        </div>
+    </div>
+
+    <!-- MODAL -->
+    <div class="modal-overlay" id="uploadModal">
+        <div class="modal-content">
+            <h2 style="margin-bottom:10px;">New Upload</h2>
+            <input type="text" id="upTitle" placeholder="Title">
+            <textarea id="upDesc" rows="4" placeholder="Describe your content..."></textarea>
+            <label style="display:block; margin-top:15px; font-size:0.8rem;">Attach Image (Optional):</label>
+            <input type="file" id="upImg" accept="image/*" style="border:none;">
+            <div style="display:flex; gap:10px; margin-top:20px;">
+                <button class="btn-auth" onclick="handleUpload()">Upload</button>
+                <button class="btn-auth" style="background:#888; color:white;" onclick="closeModal()">Cancel</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let currentUser = null;
+
+        function toggleAuth() {
+            const lb = document.getElementById('login-box'), rb = document.getElementById('reg-box');
+            lb.style.display = lb.style.display === 'none' ? 'block' : 'none';
+            rb.style.display = rb.style.display === 'none' ? 'block' : 'none';
+        }
+
+        function openModal() { document.getElementById('uploadModal').style.display = 'flex'; }
+        function closeModal() { document.getElementById('uploadModal').style.display = 'none'; }
+
+        function toggleTheme() {
+            const t = document.documentElement.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
+            document.documentElement.setAttribute('data-theme', t);
+            localStorage.setItem('portal_theme', t);
+        }
+        if(localStorage.getItem('portal_theme')) document.documentElement.setAttribute('data-theme', localStorage.getItem('portal_theme'));
+
+        // Register
+        document.getElementById('regForm').addEventListener('submit', (e) => {
+            e.preventDefault();
+            const users = JSON.parse(localStorage.getItem('portalUsers')) || [];
+            const reg = document.getElementById('rReg').value;
+            if(users.find(u => u.reg === reg)) return alert("Number already registered!");
+            users.push({ name: document.getElementById('rName').value, reg, pass: document.getElementById('rPass').value, uploads: [] });
+            localStorage.setItem('portalUsers', JSON.stringify(users));
+            alert("Successful! Login now."); toggleAuth();
+        });
+
+        // Login
+        document.getElementById('loginForm').addEventListener('submit', (e) => {
+            e.preventDefault();
+            const users = JSON.parse(localStorage.getItem('portalUsers')) || [];
+            const user = users.find(u => u.reg === document.getElementById('lReg').value && u.pass === document.getElementById('lPass').value);
+            if(user) { currentUser = user; showPortal(); } else alert("Invalid Login!");
+        });
+
+        function showPortal() {
+            document.getElementById('auth-page').style.display = 'none';
+            document.getElementById('portal-page').style.display = 'block';
+            document.getElementById('navUser').innerText = "Hello, " + currentUser.name;
+            renderInfo();
+        }
+
+        function handleUpload() {
+            const title = document.getElementById('upTitle').value, desc = document.getElementById('upDesc').value;
+            const file = document.getElementById('upImg').files[0];
+            if(!title || !desc) return alert("Fill all text fields!");
+
+            const save = (imgData = null) => {
+                const users = JSON.parse(localStorage.getItem('portalUsers'));
+                const idx = users.findIndex(u => u.reg === currentUser.reg);
+                users[idx].uploads.push({ title, desc, img: imgData, id: Date.now() });
+                currentUser = users[idx];
+                localStorage.setItem('portalUsers', JSON.stringify(users));
+                document.getElementById('upTitle').value = ""; document.getElementById('upDesc').value = "";
+                document.getElementById('upImg').value = "";
+                closeModal(); renderInfo();
+            };
+
+            if(file) {
+                const reader = new FileReader();
+                reader.onloadend = () => save(reader.result);
+                reader.readAsDataURL(file);
+            } else save();
+        }
+
+        function renderInfo() {
+            const list = document.getElementById('infoList');
+            const query = document.getElementById('searchInput').value.toLowerCase();
+            const filtered = currentUser.uploads.filter(i => i.title.toLowerCase().includes(query) || i.desc.toLowerCase().includes(query));
+
+            list.innerHTML = filtered.length === 0 ? '<p style="text-align:center; opacity:0.5; margin-top:50px;">No records found.</p>' : 
+                filtered.map(i => `
+                    <div class="info-card">
+                        ${i.img ? `<img src="${i.img}" class="card-img">` : ''}
+                        <div class="card-body">
+                            <h3>${i.title}</h3>
+                            <p>${i.desc}</p>
+                        </div>
+                        <span class="delete-btn" onclick="deleteInfo(${i.id})">Delete</span>
+                    </div>
+                `).reverse().join('');
+        }
+
+        function deleteInfo(id) {
+            const users = JSON.parse(localStorage.getItem('portalUsers')), idx = users.findIndex(u => u.reg === currentUser.reg);
+            users[idx].uploads = users[idx].uploads.filter(i => i.id !== id);
+            currentUser = users[idx];
+            localStorage.setItem('portalUsers', JSON.stringify(users));
+            renderInfo();
+        }
+    </script>
+</body>
+</html>
+
